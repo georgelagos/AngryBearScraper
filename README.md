@@ -1,5 +1,5 @@
-# RaspberryPi
-Raspberry Pi Utilities
+# Angry Bear Scraper
+Content Scraper for Emulation Station on Raspberry Pie
 
 Summary: The AngryBearScraper is used for gathering game metadata for the Emulation Station front-end on RaspberryPi. 
 The script creates the gameslist.xml file required for Emulation Station. It downloads both the box art,
