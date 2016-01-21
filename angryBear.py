@@ -24,7 +24,7 @@ destGameDirs = { 'NES': '/home/pi/RetroPie/roms/nes/',
                  'SNES': '/home/pi/RetroPie/roms/snes/',
                  'Genesis': '/home/pi/RetroPie/roms/megadrive/',
                  'PlaystationX': '/home/pi/RetroPie/roms/psx',
-                 'PSP': '/home/pi/RetroPie/roms/snes/' }
+                 'PSP': '/home/pi/RetroPie/roms/psp/' }
 
 def num_to_plat(key):
     switcher = {
