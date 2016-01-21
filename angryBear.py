@@ -13,6 +13,9 @@ gamelist = Element('gameList')
 #gameDir = 'Roms'
 #savePath = '500px_Imgs'
 maxWidth = 500
+gamesFound = 0
+gamesNotFound = 0
+gamesSkipped = 0
 
 # platform ids from thegamesdb.net
 platformDict = { 'NES': 7, 'SNES': 6, 'Genesis': 18, 'PlaystationX': 10, 'PSP': 13 }
@@ -53,13 +56,21 @@ xmlUrl = 'http://thegamesdb.net/api/GetPlatformGames.php?platform='+str(platform
 #print(xmlUrl)
 
 req = urllib2.Request(xmlUrl,headers={'User-Agent': 'Mozilla/5.0'})
-print(req)
 source = urllib2.urlopen(req)
 
 tree = ET.parse(source)
 root = tree.getroot()
 
 for files in os.listdir(gameDir):
+
+    isDirectory = os.path.isdir(os.path.join(gameDir,files))
+
+    if isDirectory:
+	continue
+
+    if  files.endswith((".xml",".jpg",".png")):
+	continue
+
     gameTitle = re.sub(r'\[.*?\]|\(.*?\)', '', files)
     gameTitle = re.sub(r'\s\-\s', ' ', gameTitle)
     gameTitle = re.sub(r'&', '&amp;', gameTitle)
@@ -68,7 +79,7 @@ for files in os.listdir(gameDir):
     gameTitle = gameTitle.rsplit(',')[0]
     gameTitle = gameTitle.strip()
     gameTitle = gameTitle.lower()
-    print('Filename: ', files)
+    print 'Filename: ' +  files
 
     numResult = 0
     resultsList = []
@@ -91,22 +102,25 @@ for files in os.listdir(gameDir):
             
     if numResult > 1:
         for i, v in enumerate(resultsList):
-            print ('[{0}] {1}'.format(i, v[1]))
+            print ('[{0}] {1}'.format(i, v[1].encode('ascii','ignore')))
 
         try:    
             #print ("Number of Results:", numResult)
-            choice = int(input("Select a result: "))
+            choice = int(input("Select a result (Enter to skip): "))
             gameId = resultsList[choice][0]
             print (gameId)
         except Exception:
             print('Skipping...')
+	    gamesSkipped += 1
             continue
         
     elif numResult == 0:
         print("Game not found.")
+	gamesNotFound += 1
         continue
     else:
         print ("Game found.")
+	gamesFound += 1
 
     try:
         # Get game metadata
@@ -159,12 +173,33 @@ for files in os.listdir(gameDir):
         path.text = gameDir + files
         name.text = gameRoot.find('Game/GameTitle').text
         desc.text = gameRoot.find('Game/Overview').text
-        image.text = gameDir + imgFile
+        image.text = relImgPath
     except Exception as Err:
         print('An unexpected error has occured: ' + str(Err))
         continue
 
+
+def indent(elem, level=0):
+  i = "\n" + level*"  "
+  if len(elem):
+    if not elem.text or not elem.text.strip():
+      elem.text = i + "  "
+    if not elem.tail or not elem.tail.strip():
+      elem.tail = i
+    for elem in elem:
+      indent(elem, level+1)
+    if not elem.tail or not elem.tail.strip():
+      elem.tail = i
+  else:
+    if level and (not elem.tail or not elem.tail.strip()):
+      elem.tail = i
+
 # Write XML
-#ET.dump(gamelist)
-gameListRoot = ET.ElementTree(gamelist)
-gameListRoot.write(gameDir + 'gamelist.xml')
+indent(gamelist)
+tree  = ET.ElementTree(gamelist)
+tree.write(gameDir + 'gamelist.xml',xml_declaration=True, encoding='utf-8', method="xml")
+
+print "Games Found: " + str(gamesFound)
+print "Games Not Found: " + str(gamesNotFound)
+print "Games Skipped: " + str(gamesSkipped)
+print "All done!"
